@@ -3,27 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multiplayer Blackjack</title>
+  <title>Blackjack 2 hráči</title>
   <style>
     :root {
-      --bg1: #0b1b12;
-      --bg2: #102f1d;
-      --table: #0d6638;
-      --table-dark: #0a4d2d;
-      --gold: #f7d86d;
-      --gold-2: #f2b93d;
-      --panel: rgba(12, 20, 23, 0.75);
-      --text: #edfdf6;
-      --muted: #cfe7d8;
+      --bg1: #0a1d14;
+      --bg2: #123324;
+      --table: #0c5d38;
+      --table2: #084624;
+      --gold: #f6d76a;
+      --gold2: #f2b93d;
+      --panel: rgba(12, 20, 23, 0.74);
+      --text: #edfdf5;
+      --muted: #d9e9de;
       --danger: #ef4444;
       --success: #4ade80;
       --warning: #fbbf24;
-      --shadow: rgba(0, 0, 0, 0.28);
+      --line: rgba(255,255,255,0.08);
+      --shadow: rgba(0,0,0,0.3);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -31,21 +30,19 @@
       display: grid;
       place-items: center;
       font-family: Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at top, rgba(247, 216, 109, 0.12), transparent 22%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
       color: var(--text);
-      padding: 20px;
+      padding: 24px;
     }
 
     .app {
-      width: min(1180px, 100%);
+      width: min(1100px, 100%);
       background: rgba(8, 18, 20, 0.38);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 28px;
-      box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+      border-radius: 26px;
+      box-shadow: 0 26px 80px var(--shadow);
       padding: 20px;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
     }
 
     .topbar {
@@ -54,64 +51,26 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .title {
-      font-size: clamp(1.8rem, 3vw, 3rem);
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
       font-weight: 900;
-      letter-spacing: 1px;
       color: var(--gold);
-      text-shadow: 0 8px 20px rgba(247, 216, 109, 0.18);
-    }
-
-    .controls-top {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.14s ease, filter 0.14s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .primary {
-      background: linear-gradient(135deg, var(--gold), var(--gold-2));
-      color: #1d1d1d;
-      box-shadow: 0 10px 20px rgba(247, 216, 109, 0.2);
-    }
-
-    .secondary {
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.08);
+      letter-spacing: 1px;
+      text-shadow: 0 8px 20px rgba(246,215,106,0.25);
     }
 
     .table {
-      position: relative;
-      background: linear-gradient(180deg, var(--table), var(--table-dark));
+      background: linear-gradient(180deg, var(--table), var(--table2));
       border: 10px solid #d4af37;
       border-radius: 28px;
-      box-shadow:
-        inset 0 0 30px rgba(0,0,0,0.22),
-        0 20px 40px rgba(0,0,0,0.2);
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.25), 0 18px 40px rgba(0,0,0,0.22);
       padding: 18px;
-      min-height: 640px;
+      position: relative;
       overflow: hidden;
+      min-height: 640px;
     }
 
     .table::before {
@@ -123,8 +82,7 @@
       pointer-events: none;
     }
 
-    .dealer-box,
-    .player {
+    .dealer-box, .player-panel {
       position: relative;
       z-index: 1;
       background: rgba(0,0,0,0.12);
@@ -141,22 +99,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .label {
-      color: var(--muted);
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       letter-spacing: 1px;
       text-transform: uppercase;
+      color: var(--muted);
       font-weight: 700;
     }
 
     .dealer-score {
-      color: var(--gold);
       font-weight: 800;
+      color: var(--gold);
       font-size: 1.08rem;
     }
 
@@ -164,7 +122,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      min-height: 108px;
+      min-height: 110px;
     }
 
     .card {
@@ -180,21 +138,18 @@
       flex-direction: column;
       justify-content: space-between;
       font-weight: 900;
-      position: relative;
       overflow: hidden;
     }
 
-    .card.red {
-      color: #b91c1c;
-    }
+    .card.red { color: #b91c1c; }
 
     .card.back {
-      background: linear-gradient(135deg, #2854a0, #163d74);
-      border-color: rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, #2b5db3, #183d73);
       color: white;
       justify-content: center;
       align-items: center;
       font-size: 2rem;
+      border-color: rgba(255,255,255,0.08);
     }
 
     .card .top, .card .bottom {
@@ -217,19 +172,19 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
       gap: 16px;
     }
 
-    .player {
-      min-height: 255px;
-      transition: transform 0.14s ease, border-color 0.14s ease;
+    .player-panel {
+      min-height: 290px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
     }
 
-    .player.active {
-      border-color: rgba(247, 216, 109, 0.8);
+    .player-panel.active {
+      border-color: rgba(246,215,106,0.88);
+      box-shadow: 0 0 0 2px rgba(246,215,106,0.12);
       transform: translateY(-2px);
-      box-shadow: 0 0 0 2px rgba(247,216,109,0.18);
     }
 
     .player-header {
@@ -237,23 +192,49 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
       flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
     .player-name {
-      font-size: 1.12rem;
+      font-size: 1.14rem;
       font-weight: 900;
     }
 
     .chips {
-      background: rgba(247,216,109,0.12);
-      border: 1px solid rgba(247,216,109,0.35);
+      background: rgba(246,215,106,0.12);
+      border: 1px solid rgba(246,215,106,0.35);
       color: var(--gold);
       border-radius: 999px;
       padding: 5px 10px;
       font-size: 0.8rem;
       font-weight: 800;
+    }
+
+    .bet-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .bet-row input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .bet-row button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
     }
 
     .player-meta {
@@ -274,12 +255,12 @@
 
     .meta-box strong {
       display: block;
-      color: var(--text);
       font-size: 1rem;
+      color: var(--text);
       margin-top: 4px;
     }
 
-    .player-status {
+    .status {
       min-height: 22px;
       font-size: 0.8rem;
       font-weight: 800;
@@ -287,7 +268,7 @@
       margin-bottom: 8px;
     }
 
-    .action-bar {
+    .controls {
       position: relative;
       z-index: 1;
       display: flex;
@@ -297,18 +278,35 @@
       margin-top: 18px;
     }
 
-    .action-bar button {
-      min-width: 120px;
+    .controls button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      min-width: 130px;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #1d1d1d;
+      box-shadow: 0 10px 20px rgba(246,215,106,0.18);
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     .message {
       position: relative;
       z-index: 1;
+      margin-top: 18px;
       text-align: center;
       min-height: 34px;
-      margin-top: 18px;
-      font-size: 1.04rem;
       font-weight: 800;
+      font-size: 1.04rem;
     }
 
     .message.info { color: #fef3c7; }
@@ -320,11 +318,11 @@
         grid-template-columns: 1fr;
       }
 
-      .action-bar {
+      .controls {
         flex-direction: column;
       }
 
-      .action-bar button {
+      .controls button {
         width: 100%;
       }
     }
@@ -333,11 +331,8 @@
 <body>
   <div class="app">
     <div class="topbar">
-      <div class="title">♠️ BLACKJACK MULTIPLAYER</div>
-      <div class="controls-top">
-        <button class="secondary" id="resetBtn">Nový stůl</button>
-        <button class="primary" id="dealBtn">Rozdat</button>
-      </div>
+      <div class="title">♠️ BLACKJACK 2 HRÁČI</div>
+      <button class="primary" id="newRoundBtn">Nové kolo</button>
     </div>
 
     <div class="table">
@@ -351,28 +346,31 @@
 
       <div class="players" id="players"></div>
 
-      <div class="action-bar">
-        <button class="secondary" id="minusBetBtn">- Sázka</button>
-        <button class="secondary" id="plusBetBtn">+ Sázka</button>
+      <div class="controls">
         <button class="secondary" id="hitBtn">Hit</button>
         <button class="secondary" id="standBtn">Stand</button>
-        <button class="primary" id="doubleBtn">Double</button>
+        <button class="secondary" id="doubleBtn">Double</button>
+        <button class="primary" id="dealBtn">Rozdat</button>
       </div>
 
-      <div class="message info" id="message">Stůl je připraven. Klikni na „Rozdat“.</div>
+      <div class="message info" id="message">Hra je připravena. Klikni na „Rozdat“.</div>
     </div>
   </div>
 
   <script>
     const SUITS = ["♠", "♥", "♦", "♣"];
     const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const PLAYER_NAMES = ["Hráč 1", "Hráč 2", "Hráč 3"];
 
     let deck = [];
     let players = [];
-    let dealer = { hand: [], reveal: false };
-    let currentPlayer = 0;
-    let roundInProgress = false;
+    let dealer = { hand: [], revealed: false };
+    let currentPlayerIndex = 0;
+    let roundActive = false;
+
+    const playersData = [
+      { name: "Hráč 1", chips: 300, bet: 20, status: "Čeká", hand: [], finished: false, busted: false, blackjack: false },
+      { name: "Hráč 2", chips: 300, bet: 20, status: "Čeká", hand: [], finished: false, busted: false, blackjack: false }
+    ];
 
     function createDeck() {
       const newDeck = [];
@@ -386,37 +384,7 @@
         const j = Math.floor(Math.random() * (i + 1));
         [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
       }
-
       return newDeck;
-    }
-
-    function resetTable() {
-      players = PLAYER_NAMES.map((name, index) => ({
-        id: index,
-        name,
-        chips: 300,
-        bet: 20,
-        hand: [],
-        status: "",
-        finished: false,
-        busted: false,
-        blackjack: false
-      }));
-
-      dealer = { hand: [], reveal: false };
-      currentPlayer = 0;
-      roundInProgress = false;
-      deck = createDeck();
-
-      render();
-      setMessage("Stůl je připraven. Klikni na „Rozdat“.", "info");
-    }
-
-    function drawCard() {
-      if (deck.length < 15) {
-        deck = createDeck();
-      }
-      return deck.pop();
     }
 
     function cardColor(card) {
@@ -446,16 +414,21 @@
       return total;
     }
 
+    function drawCard() {
+      if (deck.length < 20) deck = createDeck();
+      return deck.pop();
+    }
+
     function cardHtml(card, hidden = false) {
       if (hidden) {
-        return '<div class="card back">?</div>';
+        return '<div class=\"card back\">?</div>';
       }
 
       return `
-        <div class="card ${cardColor(card)}">
-          <div class="top">${card.value}${card.suit}</div>
-          <div class="center">${card.suit}</div>
-          <div class="bottom">${card.value}${card.suit}</div>
+        <div class=\"card ${cardColor(card)}\">
+          <div class=\"top\">${card.value}${card.suit}</div>
+          <div class=\"center\">${card.suit}</div>
+          <div class=\"bottom\">${card.value}${card.suit}</div>
         </div>
       `;
     }
@@ -470,7 +443,7 @@
         return;
       }
 
-      if (dealer.reveal) {
+      if (dealer.revealed) {
         dealerCards.innerHTML = dealer.hand.map(card => cardHtml(card)).join("");
         dealerScore.textContent = "Skóre: " + scoreHand(dealer.hand);
       } else {
@@ -487,14 +460,20 @@
       playersContainer.innerHTML = "";
 
       players.forEach((player, index) => {
-        const isActive = roundInProgress && index === currentPlayer;
+        const active = roundActive && index === currentPlayerIndex;
+
         const panel = document.createElement("div");
-        panel.className = `player ${isActive ? "active" : ""}`;
+        panel.className = `player-panel ${active ? "active" : ""}`;
 
         panel.innerHTML = `
           <div class="player-header">
             <div class="player-name">${player.name}</div>
             <div class="chips">${player.chips} Kč</div>
+          </div>
+
+          <div class="bet-row">
+            <input id="bet-${index}" type="number" min="10" max="200" value="${player.bet}" />
+            <button class="secondary" data-set-bet="${index}">Set</button>
           </div>
 
           <div class="player-meta">
@@ -508,7 +487,7 @@
             </div>
           </div>
 
-          <div class="player-status">${player.status || "Čeká"}</div>
+          <div class="status">${player.status}</div>
 
           <div class="cards">
             ${player.hand.map(card => cardHtml(card)).join("") || ""}
@@ -516,6 +495,19 @@
         `;
 
         playersContainer.appendChild(panel);
+      });
+
+      players.forEach((_, index) => {
+        document.querySelector(`[data-set-bet="${index}"]`)?.addEventListener("click", () => {
+          if (roundActive) return;
+          const input = document.getElementById(`bet-${index}`);
+          const value = Number(input.value);
+          if (isNaN(value)) return;
+          if (value >= 10 && value <= 200) {
+            players[index].bet = value;
+            renderPlayers();
+          }
+        });
       });
     }
 
@@ -525,133 +517,191 @@
       msg.className = "message " + type;
     }
 
-    function playTone(freq, duration = 120, type = "triangle", volume = 0.025) {
+    function playTone(freq = 440, duration = 120, type = "triangle", volume = 0.025) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
 
       const ctx = new AudioCtx();
-      const os = ctx.createOscillator();
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      os.type = type;
-      os.frequency.value = freq;
+      osc.type = type;
+      osc.frequency.value = freq;
       gain.gain.value = volume;
 
-      os.connect(gain);
+      osc.connect(gain);
       gain.connect(ctx.destination);
 
-      os.start();
-      setTimeout(() => {
-        os.stop();
-        ctx.close();
-      }, duration);
+      osc.start();
+      setTimeout(() => { osc.stop(); ctx.close(); }, duration);
     }
 
-    function currentPlayerObject() {
-      return players[currentPlayer];
+    function currentPlayer() {
+      return players[currentPlayerIndex];
     }
 
-    function validPlayersLeft() {
-      return players.some((player, index) => index !== currentPlayer && !player.finished);
+    function startNewRound() {
+      deck = createDeck();
+
+      players = playersData.map(p => ({
+        name: p.name,
+        chips: p.chips,
+        bet: p.bet,
+        status: "Připraven",
+        hand: [],
+        finished: false,
+        busted: false,
+        blackjack: false
+      }));
+
+      dealer = { hand: [], revealed: false };
+      currentPlayerIndex = 0;
+      roundActive = true;
+
+      dealer.hand.push(drawCard());
+      dealer.hand.push(drawCard());
+
+      players.forEach(player => {
+        player.hand.push(drawCard());
+        player.hand.push(drawCard());
+      });
+
+      players.forEach((player, index) => {
+        if (scoreHand(player.hand) === 21 && player.hand.length === 2) {
+          player.blackjack = true;
+          player.finished = true;
+          player.status = "Blackjack";
+        } else {
+          player.status = "Na tahu";
+        }
+      });
+
+      renderDealer();
+      renderPlayers();
+      setMessage(`${players[currentPlayerIndex].name} začíná.`, "info");
+      playTone(700, 120, "triangle");
     }
 
-    function advanceTurn() {
-      let nextIndex = currentPlayer + 1;
+    function nextPlayer() {
+      let next = currentPlayerIndex + 1;
 
-      while (nextIndex < players.length && players[nextIndex].finished) {
-        nextIndex++;
+      while (next < players.length && players[next].finished) {
+        next++;
       }
 
-      if (nextIndex >= players.length) {
+      if (next >= players.length) {
         dealerTurn();
         return;
       }
 
-      currentPlayer = nextIndex;
-      render();
-      setMessage(`${players[currentPlayer].name} je na tahu.`, "info");
+      currentPlayerIndex = next;
+      players[currentPlayerIndex].status = "Na tahu";
+      renderPlayers();
+      renderDealer();
+      setMessage(`${players[currentPlayerIndex].name} je na tahu.`, "info");
     }
 
-    function checkBlackjackCondition() {
-      const dealerTotal = scoreHand(dealer.hand);
+    function hit() {
+      if (!roundActive) return;
 
-      if (dealerTotal === 21) {
-        players.forEach((player) => {
-          const total = scoreHand(player.hand);
+      const player = currentPlayer();
+      if (!player || player.finished) return;
 
-          if (player.blackjack && total === 21 && player.hand.length === 2) {
-            player.status = "Push";
-          } else if (total === 21 && player.hand.length === 2) {
-            player.status = "Blackjack";
-            player.chips += Math.round(player.bet * 1.5);
-          } else if (total > 21) {
-            player.status = "Prohra";
-            player.chips -= player.bet;
-          } else if (total === dealerTotal) {
-            player.status = "Push";
-          } else if (total < dealerTotal) {
-            player.status = "Prohra";
-            player.chips -= player.bet;
-          } else {
-            player.status = "Výhra";
-            player.chips += player.bet;
-          }
+      player.hand.push(drawCard());
+      const score = scoreHand(player.hand);
 
-          player.finished = true;
-        });
+      if (score > 21) {
+        player.busted = true;
+        player.finished = true;
+        player.status = "Přes";
+        renderPlayers();
 
-        roundInProgress = false;
-        dealer.reveal = true;
-        render();
-        setMessage("Krupiér má blackjack. Kolo skončilo.", "info");
-        return true;
+        if (players.every(p => p.finished)) {
+          dealerTurn();
+          return;
+        }
+
+        nextPlayer();
+        return;
       }
 
-      return false;
+      if (score === 21) {
+        player.status = "Stand";
+        player.finished = true;
+        renderPlayers();
+
+        if (players.every(p => p.finished)) {
+          dealerTurn();
+          return;
+        }
+
+        nextPlayer();
+        return;
+      }
+
+      player.status = "Na tahu";
+      renderPlayers();
     }
 
-    function evaluateRound() {
-      const dealerTotal = scoreHand(dealer.hand);
+    function stand() {
+      if (!roundActive) return;
 
-      players.forEach((player) => {
-        if (player.finished && player.blackjack) {
-          player.status = "Blackjack";
-          return;
-        }
+      const player = currentPlayer();
+      if (!player || player.finished) return;
 
-        if (player.busted) {
-          player.status = "Prohra";
-          player.chips -= player.bet;
-          return;
-        }
+      player.finished = true;
+      player.status = "Stand";
+      renderPlayers();
 
-        const total = scoreHand(player.hand);
+      if (players.every(p => p.finished)) {
+        dealerTurn();
+        return;
+      }
 
-        if (total > 21) {
-          player.status = "Prohra";
-          player.chips -= player.bet;
-        } else if (dealerTotal > 21) {
-          player.status = "Výhra";
-          player.chips += player.bet;
-        } else if (total > dealerTotal) {
-          player.status = "Výhra";
-          player.chips += player.bet;
-        } else if (total === dealerTotal) {
-          player.status = "Push";
-        } else {
-          player.status = "Prohra";
-          player.chips -= player.bet;
-        }
-      });
+      nextPlayer();
+    }
 
-      roundInProgress = false;
-      dealer.reveal = true;
-      render();
-      setMessage("Kolo skončilo. Klikni na „Rozdat“ pro další kolo.", "info");
+    function doubleDown() {
+      if (!roundActive) return;
+
+      const player = currentPlayer();
+      if (!player || player.finished) return;
+
+      if (player.hand.length !== 2) {
+        setMessage("Double lze jen po dvou kartách.", "lose");
+        return;
+      }
+
+      if (player.chips < player.bet) {
+        setMessage("Nemáš dostatek žetonů na Double.", "lose");
+        return;
+      }
+
+      player.bet *= 2;
+      player.chips -= player.bet / 2;
+      player.hand.push(drawCard());
+
+      if (scoreHand(player.hand) > 21) {
+        player.busted = true;
+        player.status = "Přes";
+      } else {
+        player.status = "Stand";
+      }
+
+      player.finished = true;
+      renderPlayers();
+
+      if (players.every(p => p.finished)) {
+        dealerTurn();
+        return;
+      }
+
+      nextPlayer();
     }
 
     function dealerTurn() {
-      dealer.reveal = true;
+      roundActive = false;
+      dealer.revealed = true;
       renderDealer();
 
       while (scoreHand(dealer.hand) < 17) {
@@ -659,180 +709,82 @@
         renderDealer();
       }
 
-      evaluateRound();
+      resolveRound();
     }
 
-    function dealRound() {
-      roundInProgress = true;
+    function resolveRound() {
+      const dealerScore = scoreHand(dealer.hand);
 
       players.forEach(player => {
-        player.hand = [];
-        player.bet = Math.max(10, Math.min(player.bet, 200));
-        player.finished = false;
-        player.busted = false;
-        player.blackjack = false;
-        player.status = "Na tahu";
-      });
-
-      dealer = { hand: [], reveal: false };
-
-      dealer.hand.push(drawCard());
-      dealer.hand.push(drawCard());
-
-      players.forEach(player => {
-        player.hand.push(drawCard());
-        player.hand.push(drawCard());
-      });
-
-      currentPlayer = 0;
-
-      players.forEach(player => {
-        const total = scoreHand(player.hand);
-        if (total === 21 && player.hand.length === 2) {
-          player.blackjack = true;
-          player.finished = true;
-          player.status = "Blackjack";
-        }
-      });
-
-      if (scoreHand(dealer.hand) === 21) {
-        dealer.reveal = true;
-        render();
-        evaluateRound();
-        return;
-      }
-
-      if (players.every(player => player.finished)) {
-        dealerTurn();
-        return;
-      }
-
-      while (players[currentPlayer] && players[currentPlayer].finished) {
-        currentPlayer++;
-      }
-
-      render();
-      setMessage(`${players[currentPlayer].name} je na tahu.`, "info");
-    }
-
-    function hit() {
-      if (!roundInProgress) return;
-
-      const player = currentPlayerObject();
-      if (!player || player.finished) return;
-
-      player.hand.push(drawCard());
-      const total = scoreHand(player.hand);
-
-      if (total > 21) {
-        player.busted = true;
-        player.finished = true;
-        player.status = "Přes";
-        playTone(180, 180, "sawtooth", 0.02);
-        render();
-
-        if (players.every(p => p.finished)) {
-          dealerTurn();
+        if (player.busted) {
+          player.status = "Prohra";
+          player.chips -= player.bet;
           return;
         }
 
-        advanceTurn();
-        return;
-      }
+        const playerScore = scoreHand(player.hand);
 
-      if (total === 21) {
-        player.finished = true;
-        player.status = "Stand";
-        render();
-
-        if (players.every(p => p.finished)) {
-          dealerTurn();
+        if (player.blackjack && player.hand.length === 2 && dealerScore !== 21) {
+          player.chips += Math.round(player.bet * 1.5);
+          player.status = "Blackjack + výhra";
           return;
         }
 
-        advanceTurn();
-        return;
-      }
+        if (dealerScore > 21) {
+          if (playerScore <= 21) {
+            player.chips += player.bet;
+            player.status = "Výhra";
+          } else {
+            player.status = "Prohra";
+          }
+          return;
+        }
 
-      player.status = "Na tahu";
-      render();
+        if (playerScore > dealerScore) {
+          player.chips += player.bet;
+          player.status = "Výhra";
+        } else if (playerScore === dealerScore) {
+          player.status = "Remíza";
+        } else {
+          player.chips -= player.bet;
+          player.status = "Prohra";
+        }
+      });
+
+      players.forEach(player => {
+        if (player.chips < 10) {
+          player.chips = 300;
+          player.bet = 20;
+        }
+      });
+
+      renderPlayers();
+      renderDealer();
+      setMessage("Kolo skončilo. Klikni na „Nové kolo“ pro další hru.", "info");
+      playTone(860, 160, "triangle");
+      setTimeout(() => playTone(1000, 160, "triangle"), 80);
     }
 
-    function stand() {
-      if (!roundInProgress) return;
-      const player = currentPlayerObject();
-      if (!player || player.finished) return;
+    document.getElementById("dealBtn").addEventListener("click", () => {
+      startNewRound();
+    });
 
-      player.finished = true;
-      player.status = "Stand";
-      render();
-
-      if (players.every(p => p.finished)) {
-        dealerTurn();
-        return;
-      }
-
-      advanceTurn();
-    }
-
-    function doubleDown() {
-      if (!roundInProgress) return;
-
-      const player = currentPlayerObject();
-      if (!player || player.finished) return;
-
-      if (player.chips < player.bet) {
-        setMessage("Na double není dostatek žetonů.", "lose");
-        return;
-      }
-
-      player.bet *= 2;
-      player.hand.push(drawCard());
-
-      if (scoreHand(player.hand) > 21) {
-        player.busted = true;
-        player.finished = true;
-        player.status = "Přes";
-        playTone(190, 180, "sawtooth", 0.02);
-      } else {
-        player.finished = true;
-        player.status = "Stand";
-      }
-
-      render();
-
-      if (players.every(p => p.finished)) {
-        dealerTurn();
-        return;
-      }
-
-      advanceTurn();
-    }
-
-    function adjustBet(delta) {
-      if (roundInProgress) return;
-
-      const player = currentPlayerObject();
-      if (!player) return;
-
-      const newBet = player.bet + delta;
-      if (newBet >= 10 && newBet <= 200) {
-        player.bet = newBet;
-        render();
-      }
-    }
-
-    document.getElementById("dealBtn").addEventListener("click", dealRound);
-    document.getElementById("resetBtn").addEventListener("click", resetTable);
+    document.getElementById("newRoundBtn").addEventListener("click", () => {
+      playersData[0].chips = 300;
+      playersData[1].chips = 300;
+      playersData[0].bet = 20;
+      playersData[1].bet = 20;
+      startNewRound();
+    });
 
     document.getElementById("hitBtn").addEventListener("click", hit);
     document.getElementById("standBtn").addEventListener("click", stand);
     document.getElementById("doubleBtn").addEventListener("click", doubleDown);
 
-    document.getElementById("plusBetBtn").addEventListener("click", () => adjustBet(10));
-    document.getElementById("minusBetBtn").addEventListener("click", () => adjustBet(-10));
-
-    resetTable();
+    players = [...playersData];
+    renderPlayers();
+    renderDealer();
+    setMessage("Hra je připravena. Klikni na „Rozdat“.", "info");
   </script>
 </body>
 </html>
