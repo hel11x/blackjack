@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiplayer Blackjack</title>
+  <style>
+    :root {
+      --bg1: #0b1d13;
+      --bg2: #132f1e;
+      --table: #0d6b3b;
+      --table-dark: #0a532e;
+      --gold: #f4d35e;
+      --gold-2: #f6b93d;
+      --panel: rgba(15, 25, 27, 0.72);
+      --text: #ecfdf5;
+      --muted: #b7d9c3;
+      --danger: #ef4444;
+      --success: #4ade80;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --card-back: #1d3b66;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(244, 211, 94, 0.15), transparent 24%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1200px, 100%);
+      background: rgba(9, 18, 20, 0.32);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.4);
+      padding: 22px;
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-weight: 900;
+      letter-spacing: 1px;
+      font-size: clamp(1.7rem, 3vw, 2.8rem);
+      color: var(--gold);
+      text-shadow: 0 10px 20px rgba(244, 211, 94, 0.22);
+    }
+
+    .controls-top {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    button:active { transform: translateY(1px); }
+
+    .primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #1d1d1d;
+      box-shadow: 0 12px 20px rgba(244, 211, 94, 0.18);
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .table {
+      background: linear-gradient(180deg, var(--table), var(--table-dark));
+      border: 10px solid #d4af37;
+      border-radius: 30px;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.22), 0 25px 50px rgba(0,0,0,0.25);
+      padding: 18px;
+      min-height: 560px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .table::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 22px;
+      pointer-events: none;
+    }
+
+    .dealer-box {
+      background: rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dealer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .dealer-score {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 110px;
+    }
+
+    .card {
+      width: 84px;
+      height: 115px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #e5e7eb);
+      border: 2px solid rgba(0,0,0,0.18);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px 10px;
+      color: #111827;
+      font-weight: 900;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card.back {
+      background: linear-gradient(135deg, #2a5ea8, #163d71);
+      border-color: rgba(255,255,255,0.08);
+      color: white;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+    }
+
+    .card.red { color: #b91c1c; }
+    .card .top, .card .bottom {
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+
+    .card .center {
+      font-size: 1.5rem;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .card .bottom { align-self: flex-end; transform: rotate(180deg); }
+
+    .players {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .player {
+      background: rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      min-height: 230px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .player.active {
+      transform: translateY(-3px);
+      border-color: rgba(244, 211, 94, 0.8);
+      box-shadow: 0 0 0 2px rgba(244, 211, 94, 0.2);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .player-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .chip-badge {
+      background: rgba(244, 211, 94, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(244, 211, 94, 0.4);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .player-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .value-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .value-box strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .player-status {
+      min-height: 22px;
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .hand-summary {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .action-bar button {
+      min-width: 120px;
+    }
+
+    .message {
+      margin-top: 18px;
+      min-height: 30px;
+      text-align: center;
+      font-weight: 800;
+      color: var(--text);
+      position: relative;
+      z-index: 1;
+    }
+
+    .message.win { color: #86efac; }
+    .message.lose { color: #fca5a5; }
+    .message.info { color: #fef3c7; }
+
+    @media (max-width: 850px) {
+      .players {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">♠️ BLACKJACK MULTIPLAYER</div>
+      <div class="controls-top">
+        <button class="secondary" id="newRoundBtn">Nové kolo</button>
+        <button class="primary" id="dealBtn">Rozdat</button>
+      </div>
+    </div>
+
+    <div class="table">
+      <div class="dealer-box">
+        <div class="dealer-header">
+          <div class="label">Krupiér</div>
+          <div class="dealer-score" id="dealerScore">Skóre: --</div>
+        </div>
+        <div class="cards" id="dealerCards"></div>
+      </div>
+
+      <div class="players" id="players"></div>
+
+      <div class="action-bar">
+        <button class="secondary" id="hitBtn">Hit</button>
+        <button class="secondary" id="standBtn">Stand</button>
+        <button class="primary" id="doubleBtn">Double</button>
+      </div>
+
+      <div class="message info" id="message">Vyberte počet hráčů a rozdejte karty.</div>
+    </div>
+  </div>
+
+  <script>
+    const suits = ["♠", "♥", "♦", "♣"];
+    const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const names = ["Hráč 1", "Hráč 2", "Hráč 3"];
+    const maxPlayers = 3;
+
+    let players = [];
+    let dealer = { hand: [], hidden: true };
+    let currentPlayer = 0;
+    let roundInProgress = false;
+    let phase = "setup";
+
+    function createDeck() {
+      const deck = [];
+      suits.forEach(suit => {
+        values.forEach(value => {
+          deck.push({ suit, value });
+        });
+      });
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    let deck = createDeck();
+
+    function cardColor(card) {
+      return (card.suit === "♥" || card.suit === "♦") ? "red" : "";
+    }
+
+    function cardText(card) {
+      return `${card.value}${card.suit}`;
+    }
+
+    function scoreHand(hand) {
+      let total = 0;
+      let aces = 0;
+
+      hand.forEach(card => {
+        if (card.value === "A") {
+          aces++;
+          total += 11;
+        } else if (["K", "Q", "J"].includes(card.value)) {
+          total += 10;
+        } else {
+          total += Number(card.value);
+        }
+      });
+
+      while (total > 21 && aces > 0) {
+        total -= 10;
+        aces--;
+      }
+
+      return total;
+    }
+
+    function getCardHTML(card, hidden = false) {
+      if (hidden) {
+        return `<div class="card back">?</div>`;
+      }
+
+      return `
+        <div class="card ${cardColor(card)}">
+          <div class="top">${card.value}${card.suit}</div>
+          <div class="center">${card.suit}</div>
+          <div class="bottom">${card.value}${card.suit}</div>
+        </div>
+      `;
+    }
+
+    function setMessage(text, type = "info") {
+      const msg = document.getElementById("message");
+      msg.textContent = text;
+      msg.className = `message ${type}`;
+    }
+
+    function playTone(freq, duration = 120, type = "triangle", volume = 0.02) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = volume;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      setTimeout(() => {
+        osc.stop();
+        ctx.close();
+      }, duration);
+    }
+
+    function buildPlayers() {
+      players = names.map((name, index) => ({
+        name,
+        chips: 200,
+        bet: 20,
+        hand: [],
+        status: "ready",
+        busted: false,
+        blackjack: false,
+        active: index === 0,
+        id: index
+      }));
+      renderPlayers();
+    }
+
+    function renderPlayers() {
+      const playersContainer = document.getElementById("players");
+      playersContainer.innerHTML = "";
+
+      players.forEach((player, index) => {
+        const panel = document.createElement("div");
+        panel.className = `player ${index === currentPlayer && roundInProgress ? "active" : ""}`;
+        panel.innerHTML = `
+          <div class="player-header">
+            <div class="player-name">${player.name}</div>
+            <div class="chip-badge">${player.chips} Kč</div>
+          </div>
+
+          <div class="player-meta">
+            <div class="value-box">
+              Sázka
+              <strong>${player.bet} Kč</strong>
+            </div>
+            <div class="value-box">
+              Skóre
+              <strong>${scoreHand(player.hand) || "--"}</strong>
+            </div>
+          </div>
+
+          <div class="player-status">${player.status}</div>
+          <div class="hand-summary">${player.hand.length ? "Karty: " + player.hand.length : "Bez karet"}</div>
+          <div class="cards">
+            ${player.hand.map(card => getCardHTML(card)).join("") || ""}
+          </div>
+        `;
+        playersContainer.appendChild(panel);
+      });
+    }
+
+    function renderDealer() {
+      const dealerCards = document.getElementById("dealerCards");
+      const dealerScore = document.getElementById("dealerScore");
+
+      if (dealer.hidden) {
+        dealerCards.innerHTML = `${getCardHTML(dealer.hand[0])}${getCardHTML(dealer.hand[1], true)}`;
+        dealerScore.textContent = `Skóre: ${scoreHand([dealer.hand[0]])}`;
+      } else {
+        dealerCards.innerHTML = dealer.hand.map(card => getCardHTML(card)).join("");
+        dealerScore.textContent = `Skóre: ${scoreHand(dealer.hand)}`;
+      }
+    }
+
+    function endRound() {
+      roundInProgress = false;
+      phase = "round-end";
+      const dealerScore = scoreHand(dealer.hand);
+
+      players.forEach(player => {
+        if (player.hand.length === 0) return;
+
+        const total = scoreHand(player.hand);
+        const hasBJ = total === 21 && player.hand.length === 2;
+        const dealerBJ = dealerScore === 21 && dealer.hand.length === 2;
+
+        if (player.busted) {
+          player.status = "Prohra";
+        } else if (dealerBJ && !hasBJ) {
+          player.status = "Prohra";
+          player.chips -= player.bet;
+        } else if (hasBJ && !dealerBJ) {
+          player.status = "Blackjack!";
+          player.chips += Math.round(player.bet * 1.5);
+        } else if (total > dealerScore && !player.busted) {
+          player.status = "Výhra";
+          player.chips += player.bet;
+        } else if (total === dealerScore) {
+          player.status = "Remíza";
+        } else {
+          player.status = "Prohra";
+          player.chips -= player.bet;
+        }
+
+        player.bet = 20;
+      });
+
+      renderPlayers();
+      renderDealer();
+      setMessage("Kolo skončilo. Klikni na „Nové kolo“ pro další rozdat.", "info");
+      playTone(880, 150, "triangle");
+      setTimeout(() => playTone(1100, 160, "triangle"), 120);
+    }
+
+    function dealerTurn() {
+      dealer.hidden = false;
+      renderDealer();
+
+      while (scoreHand(dealer.hand) < 17) {
+        dealer.hand.push(drawCard());
+        renderDealer();
+      }
+
+      endRound();
+    }
+
+    function nextPlayer() {
+      let nextIndex = currentPlayer + 1;
+
+      while (nextIndex < players.length && players[nextIndex].status === "Prohra") {
+        nextIndex++;
+      }
+
+      if (nextIndex >= players.length) {
+        dealerTurn();
+        return;
+      }
+
+      currentPlayer = nextIndex;
+      renderPlayers();
+      setMessage(`${players[currentPlayer].name} je na tahu.`, "info");
+    }
+
+    function drawCard() {
+      return deck.pop();
+    }
+
+    function checkBlackjackAfterDeal() {
+      const dealerTotal = scoreHand(dealer.hand);
+
+      players.forEach(player => {
+        const total = scoreHand(player.hand);
+
+        if (total === 21 && player.hand.length === 2) {
+          player.blackjack = true;
+          player.status = "Blackjack";
+        } else if (total > 21) {
+          player.busted = true;
+          player.status = "Přes";
+        }
+      });
+
+      const anyPlayerPlaying = players.some(player => !player.busted && !player.blackjack);
+
+      if (!anyPlayerPlaying) {
+        dealer.hidden = false;
+        renderDealer();
+        endRound();
+      }
+    }
+
+    function dealRound() {
+      if (phase === "round-end") {
+        players.forEach(player => {
+          player.hand = [];
+          player.status = "ready";
+          player.busted = false;
+          player.blackjack = false;
+          player.bet = 20;
+        });
+      }
+
+      if (deck.length < 20) {
+        deck = createDeck();
+      }
+
+      dealer = { hand: [], hidden: true };
+      players.forEach(player => {
+        player.hand = [];
+        player.status = "ready";
+        player.busted = false;
+        player.blackjack = false;
+      });
+
+      currentPlayer = 0;
+      roundInProgress = true;
+      phase = "playing";
+
+      dealer.hand.push(drawCard());
+      dealer.hand.push(drawCard());
+
+      players.forEach(player => {
+        player.hand.push(drawCard());
+        player.hand.push(drawCard());
+      });
+
+      renderPlayers();
+      renderDealer();
+
+      players.forEach(player => {
+        const total = scoreHand(player.hand);
+        if (total === 21) {
+          player.status = "Blackjack";
+          player.blackjack = true;
+        }
+      });
+
+      setMessage("Kolo začalo. Hráč 1 hraje první.", "info");
+      renderPlayers();
+      checkBlackjackAfterDeal();
+    }
+
+    function hitCurrentPlayer() {
+      if (!roundInProgress || phase !== "playing") return;
+      const player = players[currentPlayer];
+
+      if (player.status === "Blackjack" || player.busted || player.status === "Stand") return;
+
+      player.hand.push(drawCard());
+      const total = scoreHand(player.hand);
+
+      if (total > 21) {
+        player.busted = true;
+        player.status = "Přes";
+        playTone(220, 180, "sawtooth", 0.02);
+        nextPlayer();
+        return;
+      }
+
+      if (total === 21) {
+        player.status = "Stand";
+        nextPlayer();
+        return;
+      }
+
+      player.status = "Na tahu";
+      renderPlayers();
+    }
+
+    function standCurrentPlayer() {
+      if (!roundInProgress || phase !== "playing") return;
+      const player = players[currentPlayer];
+      player.status = "Stand";
+      renderPlayers();
+      nextPlayer();
+    }
+
+    function doubleCurrentPlayer() {
+      if (!roundInProgress || phase !== "playing") return;
+      const player = players[currentPlayer];
+      if (player.chips < player.bet) {
+        setMessage("Na dbl není dostatek žetonů.", "lose");
+        return;
+      }
+      player.bet *= 2;
+      player.hand.push(drawCard());
+      const total = scoreHand(player.hand);
+
+      if (total > 21) {
+        player.busted = true;
+        player.status = "Přes";
+        playTone(180, 180, "sawtooth", 0.02);
+      } else {
+        player.status = "Stand";
+      }
+
+      renderPlayers();
+      nextPlayer();
+    }
+
+    document.getElementById("dealBtn").addEventListener("click", dealRound);
+    document.getElementById("newRoundBtn").addEventListener("click", dealRound);
+    document.getElementById("hitBtn").addEventListener("click", hitCurrentPlayer);
+    document.getElementById("standBtn").addEventListener("click", standCurrentPlayer);
+    document.getElementById("doubleBtn").addEventListener("click", doubleCurrentPlayer);
+
+    buildPlayers();
+    renderDealer();
+    setMessage("Připraveno. Klikni na „Rozdat“.", "info");
+  </script>
+</body>
+</html>
